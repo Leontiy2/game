@@ -14,6 +14,8 @@ def draw_message(text, color):
 
 
 def draw():
+    if learned:
+        pg.time.delay(10)
     # screen.fill(background_color)
     screen.blit(images_dict['bg'], (0, 0))
 
@@ -45,12 +47,12 @@ def apply_action(action):
 
     # player_rect.x += player_rect.width * x_direction
     # player_rect.y += player_rect.height * y_direction
-    new_x = player_rect.x += player_rect.width * x_direction
-    new_y = player_rect.y += player_rect.height * y_direction
+    new_x = player_rect.x + player_rect.width * x_direction
+    new_y = player_rect.y + player_rect.height * y_direction
 
-    if 0 < new_x < width - player.rect.width:
+    if 0 + player_rect.width < new_x < width - 2 * player_rect.width:
         player_rect.x = new_x
-    if 0 < new_y < height - player_rect.height:
+    if 0 + player_rect.height < new_y < height - 2 * player_rect.height:
         player_rect.y = new_y
 
 
@@ -126,7 +128,7 @@ parking_img = images_dict['parking']
 parking_rect = parking_img.get_rect()
 # parking_rect.x, parking_rect.y = hotel_rect.x, hotel_rect.y + hotel_rect.height
 
-# passendger
+# passenger
 passenger_img = images_dict['passenger']
 passenger_rect = passenger_img.get_rect()
 
@@ -136,7 +138,7 @@ passenger_rect = passenger_img.get_rect()
 # passenger_rect.y += hotel_rect.height
 
 ########################################################################
-action = [0, 1, 2, 3] # 0 - right; 1 - left; 2 - up; 3- down
+actions = [0, 1, 2, 3] # 0 - right; 1 - left; 2 - up; 3- down
 Q_table = defaultdict(lambda: [0, 0, 0, 0]) # (300, 300) : [-2, -3, 5, 3]
 
 learning_rate = 0.9
@@ -146,24 +148,24 @@ epsilon = 0.1
 
 def choose_action(state):
     if random.random() < epsilon:
-        return random.choice(action)
+        return random.choice(actions)
     else:
-        # (300, 300) : [-2, 1, 0, 30]
         return np.argmax(Q_table[state])
 
-
-def update_q(state, action, reward, next_step):
-    best_next = max(Q_table[next_step])
-    # (300, 300) : [-2, 1, 0, 30]
+def update_q(state, action, reward, next_state):
+    best_next = max(Q_table[next_state])
     Q_table[state][action] += learning_rate * (reward + discount_factor * best_next - Q_table[state][action])
 
 
 def make_step():
     current_state = (player_rect.x, player_rect.y)
+
     action = choose_action(current_state)
+
     apply_action(action)
-    # перемалювати елементи
-    # draw()
+
+    draw()
+
     reward = -1
     episode_end = False
     success = False
@@ -173,8 +175,8 @@ def make_step():
         episode_end = True
 
     if parking_rect.contains(player_rect):
-        # draw_message("You win!!", pg.Color('green'))
-        print("Win!")
+        print("Перемога!")
+        # Перемога, то ж винагорода = 100
         reward = 100
         episode_end = True
         success = True
@@ -185,9 +187,15 @@ def make_step():
 
     return (episode_end, success)
 
+pg.init()
+screen = pg.display.set_mode([width,height])
+
 # Основний цикл навчання
 num_episodes = 300
 max_step = 50
+start_positions()
+learned = False
+draw()
 for episode in range(num_episodes):
     player_view = 'rear'
     player_rect.x = 300
@@ -195,17 +203,17 @@ for episode in range(num_episodes):
     for step in range(max_step):
         (episode_end, success) = make_step()
         if episode_end:
-            draw_message(str(success), pg.Color('red'))
+            # draw_message(str(success), pg.Color('red'))
             print(success)
             break
 
+learned = True
 print (Q_table)
 draw_message("Finished!", pg.Color('blue'))
 
 ########################################################################
 
-pg.init()
-screen = pg.display.set_mode([width,height])
+
 
 timer = pg.time.Clock()
 

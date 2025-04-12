@@ -1,12 +1,8 @@
-from collections import defaultdict
-from email.policy import default
-
 import pygame as pg
 import random
 
 width = 700
 height = 450
-# size = [700, 450]
 FPS = 60
 background_color = (255, 255, 255)
 
@@ -22,7 +18,6 @@ images_dict = {
         'front': pg.image.load('img/cab_front.png'),
         'right': pg.image.load('img/cab_right.png'),
     },
-    # '': pg.image.load('img/'),
     'hole': pg.image.load('img/hole.png'),
     'hotel': pg.transform.scale(pg.image.load('img/hotel.png'), (80, 80)),
     'passenger': pg.image.load('img/passenger.png'),
